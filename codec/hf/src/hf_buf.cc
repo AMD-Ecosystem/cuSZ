@@ -322,36 +322,36 @@ struct Buf<E>::impl : _ptb::buf_base {
     }
   }
 
-  H4* scratch() const { return data().ptr_of<H4>(SCRATCH); }
-  H4* book() const { return data().ptr_of<H4>(BOOK); }
-  PHF_BYTE* rvbk() const { return data().ptr_of<PHF_BYTE>(RVBK); }
-  H4* bitstream() const { return data().ptr_of<H4>(BITSTREAM); }
-  M* par_nbit() const { return data().ptr_of<M>(PAR_NBIT); }
-  M* par_ncell() const { return data().ptr_of<M>(PAR_NCELL); }
-  M* par_entry() const { return data().ptr_of<M>(PAR_ENTRY); }
+  H4* scratch() const { return data().template ptr_of<H4>(SCRATCH); }
+  H4* book() const { return data().template ptr_of<H4>(BOOK); }
+  PHF_BYTE* rvbk() const { return data().template ptr_of<PHF_BYTE>(RVBK); }
+  H4* bitstream() const { return data().template ptr_of<H4>(BITSTREAM); }
+  M* par_nbit() const { return data().template ptr_of<M>(PAR_NBIT); }
+  M* par_ncell() const { return data().template ptr_of<M>(PAR_NCELL); }
+  M* par_entry() const { return data().template ptr_of<M>(PAR_ENTRY); }
   PHF_BYTE* archive_bitstream() const
   { return encoded() + PHFHEADER_FORCED_ALIGN + (use_prebuilt_rvbk ? 0 : rvbk4_bytes); }
 
   PHF_BYTE* encoded() const { return archive_dst ? archive_dst : (PHF_BYTE*)scratch(); }
 
-  u4* scan_partial() const { return state().ptr_of<u4>(SCAN_PARTIAL); }
-  u4* scan_incl() const { return state().ptr_of<u4>(SCAN_INCL); }
-  int* scan_status() const { return state().ptr_of<int>(SCAN_STATUS); }
+  u4* scan_partial() const { return state().template ptr_of<u4>(SCAN_PARTIAL); }
+  u4* scan_incl() const { return state().template ptr_of<u4>(SCAN_INCL); }
+  int* scan_status() const { return state().template ptr_of<int>(SCAN_STATUS); }
   u4* total_ncell() const
   {
-    auto const p = state().ptr_of<u4>(TOTAL_NCELL);
-    return p ? p : state().ptr_of<u4>(INFO_TOTAL_NCELL);
+    auto const p = state().template ptr_of<u4>(TOTAL_NCELL);
+    return p ? p : state().template ptr_of<u4>(INFO_TOTAL_NCELL);
   }
-  u4* pick_encid() const { return state().ptr_of<u4>(PICK_ENCID); }
-  u4* hist() const { return state().ptr_of<u4>(HIST); }
+  u4* pick_encid() const { return state().template ptr_of<u4>(PICK_ENCID); }
+  u4* hist() const { return state().template ptr_of<u4>(HIST); }
   BHeader* pbk_headers() const
   {
-    auto const p = state().ptr_of<BHeader>(PBK_HEADERS);
-    return p ? p : state().ptr_of<BHeader>(HF_HEADER);
+    auto const p = state().template ptr_of<BHeader>(PBK_HEADERS);
+    return p ? p : state().template ptr_of<BHeader>(HF_HEADER);
   }
-  u1* incomp_flag() const { return state().ptr_of<u1>(INCOMP_FLAG); }
-  u4* pbkgo_state() const { return state().ptr_of<u4>(PBKGO_STATE); }
-  phf::LutEntry* lut() const { return state().ptr_of<phf::LutEntry>(LUT); }
+  u1* incomp_flag() const { return state().template ptr_of<u1>(INCOMP_FLAG); }
+  u4* pbkgo_state() const { return state().template ptr_of<u4>(PBKGO_STATE); }
+  phf::LutEntry* lut() const { return state().template ptr_of<phf::LutEntry>(LUT); }
 
   // public functions
   void memcpy_merge(Header& header, phf_stream_t stream)

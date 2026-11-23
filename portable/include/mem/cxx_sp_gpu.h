@@ -63,9 +63,9 @@ struct compact_GPU_DRAM2 : public buf_base {
     memcpy_allkinds<D2H>(h_num.get(), num_d(), 1);
     return *(h_num.get());
   }
-  cell* val_idx_d() const { return data().ptr_of<cell>(VAL_IDX); }
+  cell* val_idx_d() const { return data().template ptr_of<cell>(VAL_IDX); }
   cell* val_idx_h() const { return h_val_idx.get(); }
-  uint32_t* num_d() const { return state().ptr_of<uint32_t>(NUM); }
+  uint32_t* num_d() const { return state().template ptr_of<uint32_t>(NUM); }
   uint32_t* num_h() const { return h_num.get(); }
   uint32_t num_h(size_t i) const { return h_num[i]; }
   size_t max_allowed_num() const { return reserved_len_wanted; }

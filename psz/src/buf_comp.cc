@@ -128,9 +128,9 @@ struct lrz_buf : stage_buf {
 
   template <typename E>
   E* eq() const
-  { return (E*)data().ptr_of<u1>(EQ); }
-  T* decode_fused() const { return data().ptr_of<T>(DECODE_FUSED); }
-  u4* top1() const { return state().ptr_of<u4>(TOP1); }
+  { return (E*)data().template ptr_of<u1>(EQ); }
+  T* decode_fused() const { return data().template ptr_of<T>(DECODE_FUSED); }
+  u4* top1() const { return state().template ptr_of<u4>(TOP1); }
 };
 
 template <typename T>
@@ -186,10 +186,10 @@ struct spl_buf : stage_buf {
 
   template <typename E>
   E* eq() const
-  { return (E*)data().ptr_of<u1>(EQ); }
-  T* anchor() const { return data().ptr_of<T>(ANCHOR); }
-  T* decode_fused() const { return data().ptr_of<T>(DECODE_FUSED); }
-  T* pe() const { return state().ptr_of<T>(PE); }
+  { return (E*)data().template ptr_of<u1>(EQ); }
+  T* anchor() const { return data().template ptr_of<T>(ANCHOR); }
+  T* decode_fused() const { return data().template ptr_of<T>(DECODE_FUSED); }
+  T* pe() const { return state().template ptr_of<T>(PE); }
 };
 
 template <typename T>
