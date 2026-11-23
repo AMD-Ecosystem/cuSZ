@@ -37,16 +37,20 @@ namespace psz {
 
 template <
     typename T, typename E, typename FP = float, int LINEAR_BLOCK_SIZE = DEFAULT_LINEAR_BLOCK_SIZE,
-    typename CompactValIdx = void*, typename CompactNum = uint32_t*>
+    typename CompactValIdx = void*, typename CompactNum = uint32_t*,
+    class Features = psz::PredictorFeature<0b0>>
 __global__ void KCU_c_spline3d_infprecis_32x8x8data(
     T* data, dim3 data_size, dim3 data_leap, E* eq, dim3 eq_size, dim3 eq_leap, T* anchor,
-    dim3 anchor_leap, CompactValIdx cvi, CompactNum cn, FP eb_r, FP ebx2, int radius);
+    dim3 anchor_leap, CompactValIdx cvi, CompactNum cn, FP eb_r, FP ebx2, int radius,
+    uint32_t* out_bheader, psz::OutlierCell* out_block_outliers = nullptr,
+    bool enable_global = false, size_t max_allowed = 0);
 
 template <
     typename E, typename T, typename FP = float, int LINEAR_BLOCK_SIZE = DEFAULT_LINEAR_BLOCK_SIZE>
 __global__ void KCU_x_spline3d_infprecis_32x8x8data(
     E* eq, dim3 eq_size, dim3 eq_leap, T* anchor, dim3 anchor_size, dim3 anchor_leap, T* data,
-    dim3 data_size, dim3 data_leap, FP eb_r, FP ebx2, int radius);
+    dim3 data_size, dim3 data_leap, FP eb_r, FP ebx2, int radius, u1 const* incomp_flag = nullptr,
+    T* fused_src = nullptr);
 
 }  // namespace psz
 
@@ -57,7 +61,7 @@ template <
     bool PROBE_PRED_ERROR = false>
 __device__ void spline3d_layout2_interpolate(
     volatile T1 s_data[9][9][33], volatile T2 s_eq[9][9][33], dim3 data_size, FP eb_r, FP ebx2,
-    int radius);
+    int radius, u1 const* incomp_flag);
 }  // namespace psz
 
 namespace {
@@ -820,12 +824,12 @@ __device__ void psz::spline3d_layout2_interpolate(
 
 template <
     typename T, typename E, typename FP, int LINEAR_BLOCK_SIZE, typename CompactValIdx,
-    typename CompactNum, class Features = psz::PredictorFeature<0b0>>
+    typename CompactNum, class Features>
 __global__ void psz::KCU_c_spline3d_infprecis_32x8x8data(
     T* data, dim3 data_size, dim3 data_leap, E* eq, dim3 eq_size, dim3 eq_leap, T* anchor,
     dim3 anchor_leap, CompactValIdx cvi, CompactNum cn, FP eb_r, FP ebx2, int radius,
-    uint32_t* out_bheader, psz::OutlierCell* out_block_outliers = nullptr,
-    bool enable_global = false, size_t max_allowed = 0)
+    uint32_t* out_bheader, psz::OutlierCell* out_block_outliers, bool enable_global,
+    size_t max_allowed)
 {
   // compile time variables
 
@@ -868,7 +872,7 @@ __global__ void psz::KCU_x_spline3d_infprecis_32x8x8data(
     T* data,           // output
     dim3 data_size,    //
     dim3 data_leap,    //
-    FP eb_r, FP ebx2, int radius, u1 const* incomp_flag = nullptr, T* fused_src = nullptr)
+    FP eb_r, FP ebx2, int radius, u1 const* incomp_flag, T* fused_src)
 {
   // compile time variables
 
