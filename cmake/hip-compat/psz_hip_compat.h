@@ -14,6 +14,9 @@
 
 #include <hip/hip_cooperative_groups.h>
 #include <hip/hip_runtime.h>
+// Parse HIP's bf16 header (which declares its own __shfl_*_sync overloads) before
+// the c_cu2hip shuffle macros exist; rocprim, hipcub and hip_fp8.h include it.
+#include <hip/hip_bf16.h>
 
 #include "macro/c_cu2hip_0_translation.h"
 #include "macro/c_cu2hip_1_fix_primitives.h"
