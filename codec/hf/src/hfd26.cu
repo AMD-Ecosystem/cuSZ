@@ -273,7 +273,7 @@ __device__ __forceinline__ void hfd26_bypass_copy(
 
 template <typename Ein, typename H, typename Storage, typename Eout, int Mag>
 __global__
-__launch_bounds__(hfd26_geometry<Mag, sizeof(Ein)>::ShardsPerChunk) void KCU_hfd26_fused(
+__launch_bounds__((hfd26_geometry<Mag, sizeof(Ein)>::ShardsPerChunk)) void KCU_hfd26_fused(
     H* in_bs, size_t const bs_len, u1* in_rvbks, int const rvbk_nbyte, u4 const* bheaders,
     LutEntry const* lut, int const pardeg, size_t const data_len, Eout* out_decoded,
     u1* out_incomp_flag)

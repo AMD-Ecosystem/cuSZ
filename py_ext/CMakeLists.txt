@@ -8,9 +8,15 @@ find_package(nanobind CONFIG REQUIRED)
 
 # High-level whole-pipeline compressor binding (cusz.h C API).
 add_library(psz_comp_cuda STATIC src/compressor.cu)
+if(PSZ_BACKEND STREQUAL "HIP" OR PSZ_BACKEND STREQUAL "hip")
+  set_source_files_properties(src/compressor.cu PROPERTIES LANGUAGE HIP)
+  set(_PSZ_PY_GPU_RT hip::device)
+else()
+  set(_PSZ_PY_GPU_RT CUDA::cudart)
+endif()
 set_target_properties(psz_comp_cuda PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(psz_comp_cuda PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(psz_comp_cuda PUBLIC cusz psz_cu_compile_settings CUDA::cudart)
+target_link_libraries(psz_comp_cuda PUBLIC cusz psz_cu_compile_settings ${_PSZ_PY_GPU_RT})
 
 nanobind_add_module(_psz_comp src/comp_bindings.cpp)
 target_include_directories(_psz_comp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

@@ -8,7 +8,11 @@
 using byte = unsigned char;
 static const int CS = 1024 * 16;  // chunk size (in bytes) [must be multiple of 8]
 static const int TPB = 512;       // threads per block [must be power of 2 and at least 128]
-#if defined(__AMDGCN_WAVEFRONT_SIZE) && (__AMDGCN_WAVEFRONT_SIZE == 64)
+#if defined(__HIP_PLATFORM_AMD__)
+// 32-lane logical warp on every AMD target: lanes are tid % 32 and the scans,
+// reductions and ballots below stay inside one 32-lane half of a wave64.
+#define WS 32
+#elif defined(__AMDGCN_WAVEFRONT_SIZE) && (__AMDGCN_WAVEFRONT_SIZE == 64)
 #define WS 64
 #else
 #define WS 32

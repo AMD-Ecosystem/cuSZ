@@ -36,6 +36,11 @@ __device__ __forceinline__ T psz_shfl_xor(T var, int lane_mask, int width = 32)
 #define __ballot_sync(MASK, PRED) \
   ((unsigned int)(__ballot(PRED) >> (__lane_id() & ~(unsigned)31)))
 
+// __any_sync/__all_sync over the same 32-lane logical warp. HIP's own forms
+// require a 64-bit mask and vote over the whole wavefront.
+#define __any_sync(MASK, PRED) (__ballot_sync(MASK, PRED) != 0u)
+#define __all_sync(MASK, PRED) (__ballot_sync(MASK, PRED) == 0xffffffffu)
+
 // Population count and __activemask: HIP uses the same intrinsic name as CUDA
 // for __popc; no translation needed.
 

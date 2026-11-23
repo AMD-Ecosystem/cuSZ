@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #include "mem/buf_lc.hh"
-#if defined(__CUDACC__)
+#if defined(__CUDACC__) || defined(__HIPCC__)
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 
@@ -13,7 +13,7 @@
 
 namespace LC_Connector {
 
-#if defined(__CUDACC__)
+#if defined(__CUDACC__) || defined(__HIPCC__)
 struct Config {
   int SMs;
   int mTpSM;

@@ -25,15 +25,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(BUILD_SHARED_LIBS "prefer shared libaries" ON)
 
 # conditionally enable functionality
-# The bundled LC-framework (third_party/lc) is an external CUDA codebase that is
-# not yet ported to HIP; default it OFF on the HIP backend so the core
-# Lorenzo/spline + Huffman/HFR + FZG pipeline builds. It can be force-enabled
-# once LC-framework gains HIP support.
-if(PSZ_BACKEND STREQUAL "HIP" OR PSZ_BACKEND STREQUAL "hip")
-  option(PSZ_ACTIVATE_LC "build LC as a submodule" OFF)
-else()
-  option(PSZ_ACTIVATE_LC "build LC as a submodule" ON)
-endif()
+option(PSZ_ACTIVATE_LC "build LC as a submodule" ON)
 
 # example and testing
 option(PSZ_BUILD_EXAMPLES "build example codes" ON)

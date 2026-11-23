@@ -57,3 +57,6 @@
 #define cudaEventRecord(...) hipEventRecord(__VA_ARGS__)
 #define cudaEventSynchronize(...) hipEventSynchronize(__VA_ARGS__)
 #define cudaEventElapsedTime(...) hipEventElapsedTime(__VA_ARGS__)
+
+#define atomicOr_block(...) atomicOr(__VA_ARGS__)
+#define __trap() __builtin_trap()

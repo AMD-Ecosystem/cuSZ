@@ -5,7 +5,7 @@
 
 #include "mem/buf_lc.hh"
 
-#if defined(__CUDACC__)
+#if defined(__CUDACC__) || defined(__HIPCC__)
 __global__ void d_reset_tcms_comp();
 __global__ void d_reset_rtr_comp();
 __global__ void d_reset_bitr_comp();
