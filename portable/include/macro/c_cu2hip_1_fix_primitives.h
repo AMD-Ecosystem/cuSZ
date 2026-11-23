@@ -3,11 +3,28 @@
 // Warp shuffle intrinsics: HIP's __shfl_*_sync require a 64-bit lane mask, but
 // the CUDA-spelled call sites pass a 32-bit mask (0xffffffff). Redirect to the
 // maskless __shfl_* forms instead. Variadic so both the 3-arg (default-width)
-// and 4-arg (explicit-width) call forms map through.
-#define __shfl_sync(MASK, VAR, SRC_LANE, ...) __shfl(VAR, SRC_LANE, ##__VA_ARGS__)
-#define __shfl_up_sync(MASK, VAR, DELTA, ...) __shfl_up(VAR, DELTA, ##__VA_ARGS__)
-#define __shfl_down_sync(MASK, VAR, DELTA, ...) __shfl_down(VAR, DELTA, ##__VA_ARGS__)
-#define __shfl_xor_sync(MASK, VAR, LANE_MASK, ...) __shfl_xor(VAR, LANE_MASK, ##__VA_ARGS__)
+// and 4-arg (explicit-width) call forms map through. The default width is 32,
+// as on CUDA, so a call site that names an absolute source lane (0..31) stays
+// inside its own 32-lane half of a wave64 instead of reading the lower half.
+#if defined(__HIPCC__) && !defined(PSZ_HIP_SHFL_HELPERS)
+#define PSZ_HIP_SHFL_HELPERS
+template <typename T>
+__device__ __forceinline__ T psz_shfl(T var, int src_lane, int width = 32)
+{ return __shfl(var, src_lane, width); }
+template <typename T>
+__device__ __forceinline__ T psz_shfl_up(T var, unsigned int delta, int width = 32)
+{ return __shfl_up(var, delta, width); }
+template <typename T>
+__device__ __forceinline__ T psz_shfl_down(T var, unsigned int delta, int width = 32)
+{ return __shfl_down(var, delta, width); }
+template <typename T>
+__device__ __forceinline__ T psz_shfl_xor(T var, int lane_mask, int width = 32)
+{ return __shfl_xor(var, lane_mask, width); }
+#endif
+#define __shfl_sync(MASK, VAR, SRC_LANE, ...) psz_shfl(VAR, SRC_LANE, ##__VA_ARGS__)
+#define __shfl_up_sync(MASK, VAR, DELTA, ...) psz_shfl_up(VAR, DELTA, ##__VA_ARGS__)
+#define __shfl_down_sync(MASK, VAR, DELTA, ...) psz_shfl_down(VAR, DELTA, ##__VA_ARGS__)
+#define __shfl_xor_sync(MASK, VAR, LANE_MASK, ...) psz_shfl_xor(VAR, LANE_MASK, ##__VA_ARGS__)
 
 // Ballot intrinsic: every call site here uses a logical 32-lane warp (mask
 // 0xffffffff) and consumes the result as a 32-bit mask. HIP's __ballot returns
