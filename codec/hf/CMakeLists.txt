@@ -45,7 +45,7 @@ endif()
 
 target_compile_definitions(${PHF_PORTABLE_TARGET}
   INTERFACE
-    ${_PHF_GPU_DEFINE}
+  ${_PHF_GPU_DEFINE}
 )
 
 # ------------------------------------------------------------------------------
@@ -53,6 +53,10 @@ target_compile_definitions(${PHF_PORTABLE_TARGET}
 # ------------------------------------------------------------------------------
 
 add_library(phf_cu
+  src/compile/hist_generic.cu
+  src/compile/histsp.cu
+  src/hist_generic.seq.cc
+  src/histsp.seq.cc
   src/hf_bk.seq.cc
   src/hf_bk_impl1.seq.cc
   src/hf_bk_impl2.seq.cc
@@ -64,28 +68,25 @@ add_library(phf_cu
   src/hf_hl.cc
   src/compile/hf_kernels.cu
   src/libphf.cc
-  src/compile/hfr_r1.cu
-  src/compile/hfr_r2.cu
-  src/compile/hfr_r3.cu
-  src/compile/hfr_r4.cu
+  src/compile/hfr_1ki.cu
   src/compile/hfr_concat.cu
-  src/compile/hfr_encode_r0.cu
-  src/compile/hfr_encode_r1.cu
-  src/compile/hfr_encode_r2.cu
-  src/compile/hfr_encode_r3.cu
-  src/compile/hfr_encode_r4.cu
+  src/compile/hfr_encode_1ki.cu
   src/hfr_pick_book.cu
-  src/compile/hfr-pbkc_r0.cu
-  src/compile/hfr-pbkc_r1.cu
-  src/compile/hfr-pbkc_r2.cu
-  src/compile/hfr-pbkc_r3.cu
-  src/compile/hfr-pbkc_r4.cu
-  src/compile/hfr-pbkgo_r2.cu
-  src/compile/hfr-pbkgo_r3.cu
-  src/compile/hfr-pbkgo_r4.cu
-  src/hfr-pbkc_x.cc
-  src/hfr-pbkgo_x.cc
+  src/compile/hfr-pbkc_1ki.cu
+  src/compile/hfr-pbkc_2ki.cu
+  src/compile/hfr-pbkc_4ki_a.cu
+  src/compile/hfr-pbkc_4ki_b.cu
+  src/compile/hfr_encode_2ki.cu
+  src/compile/hfr_encode_4ki.cu
+  src/compile/hfr-v4_1ki.cu
+  src/compile/hfr-v4_2ki.cu
+  src/compile/hfr-v4_4ki.cu
+  src/compile/hfr-pbkgo_1ki.cu
+  src/compile/hfr-pbkgo_2ki.cu
+  src/compile/hfr-pbkgo_4ki.cu
   src/hfr-pbk_decoder.cu
+  src/hfd26.cu
+  src/hfd26_ref.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/../../psz/src/book/pbk25_r128_d.cu
 )
 add_library(PHF::phf_cu ALIAS phf_cu)
@@ -105,22 +106,22 @@ endif()
 
 target_include_directories(phf_cu
   PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../psz/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../psz/src>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../psz/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../psz/src>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_link_libraries(phf_cu
   PUBLIC
-    ${_PHF_GPU_RT}
-    ${PHF_PORTABLE_TARGET}
+  ${_PHF_GPU_RT}
+  ${PHF_PORTABLE_TARGET}
 )
 
 set_target_properties(phf_cu
   PROPERTIES
-    LINKER_LANGUAGE CXX
+  LINKER_LANGUAGE CXX
 )
 
 # ------------------------------------------------------------------------------

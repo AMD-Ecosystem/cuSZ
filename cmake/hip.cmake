@@ -135,8 +135,6 @@ endif()
 
 add_library(psz_seq_core
   psz/src/kernel/lrz.seq.cc
-  psz/src/kernel/hist_generic.seq.cc
-  psz/src/kernel/histsp.seq.cc
   psz/src/kernel/spvn.seq.cc
 )
 target_link_libraries(psz_seq_core
@@ -156,25 +154,27 @@ target_link_libraries(psz_cu_mem
     EVAL::stat_cu
     DEPS::deps
     PHF::phf_cu
+    FZG::fzg_cu
     hip::device
 )
 
 set(psz_cu_core_sources
-  psz/src/compile/hist_generic.cu
-  psz/src/compile/histsp.cu
-  psz/src/compile/proto_lrz_c.cu
-  psz/src/compile/proto_lrz_x.cu
   psz/src/compile/spvn.cu
+  psz/src/compile/cast.cu
   psz/src/compile/lrz_c.cu
   psz/src/compile/lrz_x.cu
   psz/src/compile/spl_y24_c_u1.cu
   psz/src/compile/spl_y24_c_u2.cu
+  psz/src/compile/spl_y24_c_u4.cu
   psz/src/compile/spl_y24_x_u1.cu
   psz/src/compile/spl_y24_x_u2.cu
+  psz/src/compile/spl_y24_x_u4.cu
   psz/src/compile/spl_y25_c_u1.cu
   psz/src/compile/spl_y25_c_u2.cu
+  psz/src/compile/spl_y25_c_u4.cu
   psz/src/compile/spl_y25_x_u1.cu
   psz/src/compile/spl_y25_x_u2.cu
+  psz/src/compile/spl_y25_x_u4.cu
 )
 psz_mark_hip(${psz_cu_core_sources})
 add_library(psz_cu_core ${psz_cu_core_sources})
@@ -212,6 +212,7 @@ if(PSZ_ACTIVATE_LC)
     third_party/lc_gen/comp-tcms.cu third_party/lc_gen/decomp-tcms.cu
     third_party/lc_gen/comp-bitr.cu third_party/lc_gen/decomp-bitr.cu
     third_party/lc_gen/comp-rtr.cu  third_party/lc_gen/decomp-rtr.cu
+    third_party/lc_gen/comp-drh.cu  third_party/lc_gen/decomp-drh.cu
   )
   psz_mark_hip(${lc_gen_sources})
   add_library(lc_gen ${lc_gen_sources})
@@ -258,6 +259,10 @@ if(PSZ_BUILD_EXAMPLES)
   add_subdirectory(example)
 endif()
 
+if(PSZ_BUILD_PYBINDING)
+  add_subdirectory(py_ext)
+endif()
+
 if(BUILD_TESTING)
   add_subdirectory(test)
 
@@ -278,15 +283,14 @@ endif()
 
 install(TARGETS psz_cu_compile_settings EXPORT CUSZTargets)
 
+# only exist locally when EVAL wasn't resolved via find_package above
+set(_cusz_install_targets psz_seq_core psz_cu_core psz_cu_mem psz_cu_utils cusz)
+if(NOT TARGET EVAL::utils_headers AND NOT EVAL_FOUND)
+  list(APPEND _cusz_install_targets eval_cu eval_seq eval_viewer_cu)
+endif()
+
 install(TARGETS
-  psz_seq_core
-  psz_cu_core
-  psz_cu_mem
-  psz_cu_utils
-  cusz
-  eval_cu
-  eval_seq
-  eval_viewer_cu
+  ${_cusz_install_targets}
   EXPORT CUSZTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -335,12 +339,15 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CUSZ
 )
 
-install(DIRECTORY
-  portable/include
-  psz/include
-  codec/hf/include
-  codec/fzg/include
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cusz
+install(FILES
+  psz/include/cusz.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cusz/include
+)
+
+install(FILES
+  psz/include/cusz/type.h
+  psz/include/cusz/header.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cusz/include/cusz
 )
 
 install(FILES

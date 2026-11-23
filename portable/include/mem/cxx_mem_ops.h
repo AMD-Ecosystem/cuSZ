@@ -44,13 +44,13 @@ struct _memcpy_direcion<D2D> {
 template <typename T>
 T* malloc_device(size_t const len, void* stream = nullptr)
 {
-  T* __a;
+  T* __a = nullptr;
 #if defined(_PORTABLE_USE_CUDA)
   cudaMalloc(&__a, len * sizeof(T));
-  cudaMemset(__a, 0, len * sizeof(T));
+  if (__a) cudaMemset(__a, 0, len * sizeof(T));
 #elif defined(_PORTABLE_USE_HIP)
   hipMalloc(&__a, len * sizeof(T));
-  hipMemset(__a, 0, len * sizeof(T));
+  if (__a) hipMemset(__a, 0, len * sizeof(T));
 #elif defined(_PORTABLE_USE_1API)
   if (not stream)
     throw std::runtime_error("[psz::error] SYCL backend does not allow stream to be null.");
@@ -63,13 +63,13 @@ T* malloc_device(size_t const len, void* stream = nullptr)
 template <typename T>
 T* malloc_host(size_t const len, void* stream = nullptr)
 {
-  T* __a;
+  T* __a = nullptr;
 #if defined(_PORTABLE_USE_CUDA)
   cudaMallocHost(&__a, len * sizeof(T));
-  memset(__a, 0, len * sizeof(T));
+  if (__a) memset(__a, 0, len * sizeof(T));
 #elif defined(_PORTABLE_USE_HIP)
   hipHostMalloc(&__a, len * sizeof(T));
-  memset(__a, 0, len * sizeof(T));
+  if (__a) memset(__a, 0, len * sizeof(T));
 #elif defined(_PORTABLE_USE_1API)
   if (not stream)
     throw std::runtime_error("[psz::error] SYCL backend does not allow stream to be null.");
@@ -84,7 +84,7 @@ T* malloc_host(size_t const len, void* stream = nullptr)
 template <typename T>
 T* malloc_unified(size_t const len, void* stream = nullptr)
 {
-  T* __a;
+  T* __a = nullptr;
 #if defined(_PORTABLE_USE_CUDA)
   cudaMallocManaged(&__a, len * sizeof(T));
 #elif defined(_PORTABLE_USE_HIP)
@@ -101,6 +101,7 @@ T* malloc_unified(size_t const len, void* stream = nullptr)
 template <typename T>
 void free_device(T* __a, void* stream = nullptr)
 {
+  if (not __a) return;
 #if defined(_PORTABLE_USE_CUDA)
   cudaFree(__a);
 #elif defined(_PORTABLE_USE_HIP)
@@ -115,6 +116,7 @@ void free_device(T* __a, void* stream = nullptr)
 template <typename T>
 void free_host(T* __a, void* stream = nullptr)
 {
+  if (not __a) return;
 #if defined(_PORTABLE_USE_CUDA)
   cudaFreeHost(__a);
 #elif defined(_PORTABLE_USE_HIP)
@@ -130,9 +132,7 @@ void free_host(T* __a, void* stream = nullptr)
 
 template <typename T>
 void free_unified(T* __a, void* stream = nullptr)
-{
-  free_device(__a, stream);
-}
+{ free_device(__a, stream); }
 
 template <_ptb_mem_control DIR, typename T>
 void memcpy_allkinds(T* dst, T* src, size_t const len, void* stream = nullptr)

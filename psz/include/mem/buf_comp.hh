@@ -1,13 +1,14 @@
 #ifndef PSZ_COMPBUF_HH
 #define PSZ_COMPBUF_HH
 
-#include <../../codec/hf/include/hf_buf.hh>  // needed for Buf instantiation
+#include <../../codec/fzg/include/fzg_hl.hh>
+#include <../../codec/hf/include/hf_buf.hh>
 #include <cstdint>
 #include <memory>
 
 #include "cusz/type.h"
 #include "hf_hl.hh"
-#include "lc_gen/lc_buf.h"
+#include "mem/buf_lc.hh"
 #include "mem/cxx_sp_gpu.h"
 
 // segment
@@ -35,27 +36,18 @@ using Freq = u4;
 using BYTE = u1;
 using H = u4;
 
-struct BufToggle_Comp {
-  bool use_quant;
-  bool use_outlier;
-  bool use_anchor;
-  bool use_hist;
-  bool use_compressed;
-  bool use_top1;
-};
-
-template <typename _T, typename _E = u2>
+template <typename _T>
 struct Buf_Comp {
  public:
   using T = _T;
-  using E = _E;
   using FP = T;
   using M = uint32_t;
 
-  using Buf_Outlier = _ptb::compact_gpu<T>;
   using Buf_Outlier2 = _ptb::compact_GPU_DRAM2<T, M>;
-  using Buf_HF = phf::Buf<E>;
+  using Buf_HF = phf::Buf<u2>;
+  using Buf_HFR = phf::Buf_HFR<u4>;
   using Buf_LC = LC_Buf;
+  using Buf_FZG = fzg::Buf2;
 
   struct impl;
   std::unique_ptr<impl> pimpl;
@@ -64,13 +56,8 @@ struct Buf_Comp {
   constexpr static u2 max_bklen = max_radius * 2;
   constexpr static float OUTLIER_RATIO = 0.1;
 
-  // spline-specific anchor spacing .
-  constexpr static int BLK16 = 16;  // y25 (2D+3D)
-  constexpr static int BLK8 = 8;    // y24 (lean 3D)
-  constexpr static int ERR_HISTO_LEN = 36;
-
   // selector: (0 = y25/BLK16, 1 = y24/BLK8); does not change Buf_Comp ABI
-  void set_spline_variant(int v);
+  void set_predictor(psz_predictor p);
 
   bool is_comp;
   // const u4 x, y, z;
@@ -78,10 +65,6 @@ struct Buf_Comp {
   const size_t len_linear;
 
   // encapsulations
-  int hist_generic_grid_dim;
-  int hist_generic_block_dim;
-  int hist_generic_shmem_use;
-  int hist_generic_repeat;
   BYTE* comp_codec_out{nullptr};
   size_t comp_codec_outlen{0};
   uint32_t nbyte[PSZ_ENC_PASS2_END];
@@ -89,21 +72,26 @@ struct Buf_Comp {
   psz_header* header_ref;
 
  public:
-  Buf_Comp(psz_len len, BufToggle_Comp* toggle);
-  Buf_Comp(psz_len len, bool _is_comp = true, bool use_HFR = false);
+  Buf_Comp(psz_len len, bool _is_comp = true, int nstage = 2);
   ~Buf_Comp();
+
+  bool select(psz_ppl ppl);
 
   void register_header(psz_header* header) { header_ref = header; }
 
-  void clear_buffer();
+  void reset(void* stream = nullptr);
   void clear_top1();
+  void lc_wire_encoded(BYTE* external);
 
   // getter
+  template <typename E>
   E* eq_d() const;
   psz_len eq_len3() const;
+  T* decode_fused_d() const;
+  size_t eq_len() const;
+  template <typename E>
+  OutlierCell* block_outliers_d() const;
 
-  Freq* hist_d() const;
-  Freq* hist_h() const;
   Freq* top1_d() const;
   Freq* top1_h() const;
   size_t top1_nblk() const;
@@ -114,10 +102,13 @@ struct Buf_Comp {
 
   BYTE* compressed_d() const;
   BYTE* compressed_h() const;
+  size_t compressed_max_bytes() const;
+  static size_t compressed_max_bytes(psz_len len, int nstage);
 
   Buf_Outlier2* buf_outlier2() const;
   void* outlier2_validx_d() const;
   M outlier2_host_get_num() const;
+  size_t outlier2_max_allowed_num() const;
 
   // extra for profifling
   T* profiled_errors_d() const;
@@ -125,7 +116,14 @@ struct Buf_Comp {
   M profiled_errors_len() const;
 
   Buf_HF* buf_hf() const;
-  Buf_LC* buf_lc() const;
+  Buf_HFR* buf_hfr() const;
+  template <typename E>
+  u4* pbk_headers_d() const;
+  template <typename E>
+  u1* incomp_flag_d() const;
+  Buf_LC* buf_lc1() const;
+  Buf_LC* buf_lc2() const;
+  Buf_FZG* buf_fzg() const;
 
   float outlier_ratio() const { return OUTLIER_RATIO; };
 };

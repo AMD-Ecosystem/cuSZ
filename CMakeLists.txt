@@ -3,10 +3,18 @@ set(PSZ_BACKEND "CUDA" CACHE STRING "Select the desired backend: CUDA/cuda, HIP/
 
 if(PSZ_BACKEND STREQUAL "CUDA" OR PSZ_BACKEND STREQUAL "cuda")
   cmake_minimum_required(VERSION 3.18)
-  project(CUSZ LANGUAGES CUDA CXX C VERSION 0.10.0)
+  # 75 -> code=[compute_75,sm_75]
+  if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+    if(DEFINED ENV{CUDAARCHS})
+      set(CMAKE_CUDA_ARCHITECTURES "$ENV{CUDAARCHS}" CACHE STRING "CUDA architecture")
+    else()
+      set(CMAKE_CUDA_ARCHITECTURES "75" CACHE STRING "CUDA architecture (sm_75: Turing and up; Volta and Pascal *may* or *may not* work with the current CUDA SDK)")
+    endif()
+  endif()
+  project(CUSZ LANGUAGES CUDA CXX C VERSION 0.19.0)
 elseif(PSZ_BACKEND STREQUAL "HIP" OR PSZ_BACKEND STREQUAL "hip")
   cmake_minimum_required(VERSION 3.21)
-  project(HIPSZ LANGUAGES HIP CXX C VERSION 0.10.0)
+  project(HIPSZ LANGUAGES HIP CXX C VERSION 0.19.0)
 elseif(PSZ_BACKEND STREQUAL "ONEAPI" OR PSZ_BACKEND STREQUAL "oneapi" OR PSZ_BACKEND STREQUAL "1api")
   cmake_minimum_required(VERSION 3.23)
   project(DPSZ LANGUAGES CXX C VERSION 0.6.0)
@@ -30,7 +38,7 @@ endif()
 # example and testing
 option(PSZ_BUILD_EXAMPLES "build example codes" ON)
 
-# python binding (option reserved for future use; SWIG implementation stripped)
+# python binding via nanobind (py_ext/); replaces the stripped SWIG implementation
 option(PSZ_BUILD_PYBINDING "enable Python binding for specific backend" OFF)
 
 if(PSZ_BACKEND STREQUAL "CUDA" OR PSZ_BACKEND STREQUAL "cuda")

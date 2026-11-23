@@ -4,12 +4,14 @@
 // decompress) based on argv, then delegates: context.cc parses argv into ctx,
 // executor.cc runs the actual task.
 
+#include "context_impl.h"
 #include <cstdio>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 
 #include "cusz.h"
+#include "viewer.hh"
 #include "executor.hh"
 #include "query.hh"
 #include "utils/format.hh"

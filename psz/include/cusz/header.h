@@ -8,8 +8,8 @@ extern "C" {
 #include "cusz/type.h"
 
 #define PSZHEADER_HEADER 0
-#define PSZHEADER_ANCHOR 1
-#define PSZHEADER_ENCODED 2
+#define PSZHEADER_ENCODED 1
+#define PSZHEADER_ANCHOR 2
 #define PSZHEADER_SPFMT 3
 // #define PSZHEADER_END 4
 #define PSZHEADER_ENC_PASS1_END 4
@@ -20,16 +20,12 @@ typedef struct psz_header {
   union {
     struct {
       psz_dtype dtype;
-      psz_pipeline pipeline;
-      psz_rc2 rc;
+      psz_ppl pipeline;
+      double eb;
+      uint16_t radius;
 
-      // codec config (coarse-HF)
-      int vle_sublen;
-      int vle_pardeg;
+      uint32_t entry[PSZHEADER_ENC_PASS2_END + 1];
 
-      uint32_t entry[PSZHEADER_ENC_PASS2_END + 1];  // segment entries
-
-      // runtime sizes
       psz_len len;
       size_t splen;
 
@@ -39,11 +35,6 @@ typedef struct psz_header {
 
       // i/Hi
       INTERP_PARAMS intp_param;
-
-      // 0 = y25 (2D 64^2 + 3D 16^3)
-      // 1 = y24 (3D 32x8x8),
-      // 2 = y26 (future use)
-      int spline_variant;
     };
 
     // struct {

@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "lc_buf.h"
+#include "mem/buf_lc.hh"
 #if defined(__CUDACC__)
 #include <cuda.h>
 #include <cuda_runtime_api.h>
@@ -36,10 +36,12 @@ static inline Config config(const int TPB)
 void BITR_COMPRESS(uint8_t* input, size_t insize, psz::LC_Buf* buf, size_t* outsize, void* stream);
 void TCMS_COMPRESS(uint8_t* input, size_t insize, psz::LC_Buf* buf, size_t* outsize, void* stream);
 void RTR_COMPRESS(uint8_t* input, size_t insize, psz::LC_Buf* buf, size_t* outsize, void* stream);
+void DRH_COMPRESS(uint8_t* input, size_t insize, psz::LC_Buf* buf, size_t* outsize, void* stream);
 
 void BITR_DECOMPRESS(uint8_t* input, psz::LC_Buf* buf, void* stream);
 void TCMS_DECOMPRESS(uint8_t* input, psz::LC_Buf* buf, void* stream);
 void RTR_DECOMPRESS(uint8_t* input, psz::LC_Buf* buf, void* stream);
+void DRH_DECOMPRESS(uint8_t* input, psz::LC_Buf* buf, void* stream);
 
 }  // namespace LC_Connector
 

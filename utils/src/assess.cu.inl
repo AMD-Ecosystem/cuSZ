@@ -1,4 +1,5 @@
 #include "compare.hh"
+#include "extrema.hh"
 
 namespace psz::cuda {
 
@@ -13,20 +14,17 @@ constexpr auto SUM_VAR_ODATA = 2;
 constexpr auto SUM_VAR_XDATA = 3;
 
 template <typename T>
-void GPU_assess_quality(psz_statistics* s, T* xdata, T* odata, size_t const len)
+void GPU_assess_quality(psz_stats* s, T* xdata, T* odata, size_t const len)
 {
   cudaStream_t stream;
   cudaStreamCreate(&stream);
 
-  T odata_res[4], xdata_res[4];
-
-  psz::cuda::GPU_extrema<T>(odata, len, odata_res);
-  psz::cuda::GPU_extrema<T>(xdata, len, xdata_res);
+  auto [omin, omax, oavg, orng] = psz::cuda::GPU_get_extrema<T>::kernel(odata, len, stream);
+  auto [xmin, xmax, xavg, xrng] = psz::cuda::GPU_get_extrema<T>::kernel(xdata, len, stream);
 
   T h_err[4];
 
-  psz::cuda::GPU_calc_errors<T>(
-      odata, odata_res[AVGVAL], xdata, xdata_res[AVGVAL], len, h_err);
+  psz::cuda::GPU_calc_errors<T>(odata, oavg, xdata, xavg, len, h_err);
 
   double std_odata = sqrt(h_err[SUM_VAR_ODATA] / len);
   double std_xdata = sqrt(h_err[SUM_VAR_XDATA] / len);
@@ -38,33 +36,33 @@ void GPU_assess_quality(psz_statistics* s, T* xdata, T* odata, size_t const len)
 
   s->len = len;
 
-  s->odata.max = odata_res[MAXVAL];
-  s->odata.min = odata_res[MINVAL];
-  s->odata.rng = odata_res[MAXVAL] - odata_res[MINVAL];
-  s->odata.avg = odata_res[AVGVAL];
+  s->odata.max = omax;
+  s->odata.min = omin;
+  s->odata.rng = orng;
+  s->odata.avg = oavg;
   s->odata.std = std_odata;
 
-  s->xdata.max = xdata_res[MAXVAL];
-  s->xdata.min = xdata_res[MINVAL];
-  s->xdata.rng = xdata_res[MAXVAL] - xdata_res[MINVAL];
-  s->xdata.avg = xdata_res[AVGVAL];
+  s->xdata.max = xmax;
+  s->xdata.min = xmin;
+  s->xdata.rng = xrng;
+  s->xdata.avg = xavg;
   s->xdata.std = std_xdata;
 
-  s->max_err_idx = max_abserr_index;
-  s->max_err_abs = max_abserr;
-  s->max_err_rel = max_abserr / s->odata.rng;
-  s->max_err_pwrrel = NAN;
+  s->max_err.idx = max_abserr_index;
+  s->max_err.abs = max_abserr;
+  s->max_err.rel = max_abserr / s->odata.rng;
+  s->max_err.pwrrel = NAN;
 
-  s->score_coeff = ee / std_odata / std_xdata;
-  s->score_MSE = h_err[SUM_ERR_SQ] / len;
-  s->score_NRMSE = sqrt(s->score_MSE) / s->odata.rng;
-  s->score_PSNR = 20 * log10(s->odata.rng) - 10 * log10(s->score_MSE);
+  s->score.coeff = ee / std_odata / std_xdata;
+  s->score.MSE = h_err[SUM_ERR_SQ] / len;
+  s->score.NRMSE = sqrt(s->score.MSE) / s->odata.rng;
+  s->score.PSNR = 20 * log10(s->odata.rng) - 10 * log10(s->score.MSE);
 
   cudaStreamDestroy(stream);
 }
 
 }  // namespace psz::cuda
 
-#define __INSTANTIATE_CUHIP_ASSESS(T)              \
+#define __INSTANTIATE_CUHIP_ASSESS(T)             \
   template void psz::cuda::GPU_assess_quality<T>( \
-      psz_statistics * s, T * xdata, T * odata, size_t const len);
+      psz_stats * s, T * xdata, T * odata, size_t const len);

@@ -26,32 +26,32 @@ add_library(psz_cu_compile_settings INTERFACE)
 
 target_compile_features(psz_cu_compile_settings
   INTERFACE
-    cxx_std_17
-    cuda_std_17
+  cxx_std_17
+  cuda_std_17
 )
 
 target_compile_definitions(psz_cu_compile_settings
   INTERFACE
-    $<$<COMPILE_LANG_AND_ID:CUDA,Clang>:__STRICT_ANSI__>
+  $<$<COMPILE_LANG_AND_ID:CUDA,Clang>:__STRICT_ANSI__>
 )
 
 target_compile_options(psz_cu_compile_settings
   INTERFACE
-    $<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>:--extended-lambda;--expt-relaxed-constexpr;-Wno-deprecated-declarations>
+  $<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>:--extended-lambda;--expt-relaxed-constexpr;-Wno-deprecated-declarations>
 )
 
 target_include_directories(psz_cu_compile_settings
   INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/psz/src>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/psz/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/psz/include/cusz>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/cusz>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/cusz/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/cusz/include/cusz>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/psz/src>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/psz/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/psz/include/cusz>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/cusz>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/cusz/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/cusz/include/cusz>
 )
 
 # ------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ endif()
 
 target_link_libraries(psz_cu_compile_settings
   INTERFACE
-    DEPS::deps
+  DEPS::deps
 )
 
 find_package(FZG QUIET)
@@ -105,22 +105,20 @@ if(NOT TARGET PHF::phf_cu AND NOT PHF_FOUND)
 endif()
 if(TARGET phf_cu AND NOT TARGET PSZ::CUDA::phf)
   add_library(PSZ::CUDA::phf ALIAS phf_cu)
-  add_library(CUSZ::phf      ALIAS phf_cu)
+  add_library(CUSZ::phf ALIAS phf_cu)
 elseif(TARGET PHF::phf_cu AND NOT TARGET PSZ::CUDA::phf)
   add_library(PSZ::CUDA::phf ALIAS PHF::phf_cu)
-  add_library(CUSZ::phf      ALIAS PHF::phf_cu)
+  add_library(CUSZ::phf ALIAS PHF::phf_cu)
 endif()
 
 # FUNC={core,api}, BACKEND={serial,cuda,...}
 add_library(psz_seq_core
   psz/src/kernel/lrz.seq.cc
-  psz/src/kernel/hist_generic.seq.cc
-  psz/src/kernel/histsp.seq.cc
   psz/src/kernel/spvn.seq.cc
 )
 target_link_libraries(psz_seq_core
   PUBLIC
-    psz_cu_compile_settings
+  psz_cu_compile_settings
 )
 
 add_library(psz_cu_mem
@@ -129,36 +127,38 @@ add_library(psz_cu_mem
 )
 target_link_libraries(psz_cu_mem
   PUBLIC
-    psz_cu_compile_settings
-    EVAL::stat_cu
-    DEPS::deps
-    PHF::phf_cu
-    CUDA::cudart
+  psz_cu_compile_settings
+  EVAL::stat_cu
+  DEPS::deps
+  PHF::phf_cu
+  FZG::fzg_cu
+  CUDA::cudart
 )
 
 add_library(psz_cu_core
-  psz/src/compile/hist_generic.cu
-  psz/src/compile/histsp.cu
-  psz/src/compile/proto_lrz_c.cu
-  psz/src/compile/proto_lrz_x.cu
   psz/src/compile/spvn.cu
+  psz/src/compile/cast.cu
   psz/src/compile/lrz_c.cu
   psz/src/compile/lrz_x.cu
   psz/src/compile/spl_y24_c_u1.cu
   psz/src/compile/spl_y24_c_u2.cu
+  psz/src/compile/spl_y24_c_u4.cu
   psz/src/compile/spl_y24_x_u1.cu
   psz/src/compile/spl_y24_x_u2.cu
+  psz/src/compile/spl_y24_x_u4.cu
   psz/src/compile/spl_y25_c_u1.cu
   psz/src/compile/spl_y25_c_u2.cu
+  psz/src/compile/spl_y25_c_u4.cu
   psz/src/compile/spl_y25_x_u1.cu
   psz/src/compile/spl_y25_x_u2.cu
+  psz/src/compile/spl_y25_x_u4.cu
 )
 target_link_libraries(psz_cu_core
   PUBLIC
-    psz_cu_compile_settings
-    psz_cu_mem
-    PHF::phf_cu
-    CUDA::cudart
+  psz_cu_compile_settings
+  psz_cu_mem
+  PHF::phf_cu
+  CUDA::cudart
 )
 
 add_library(psz_cu_utils
@@ -170,13 +170,13 @@ add_library(psz_cu_utils
 )
 target_link_libraries(psz_cu_utils
   PUBLIC
-    psz_cu_compile_settings
-    PHF::phf_cu
-    EVAL::stat_seq
-    EVAL::viewer_cu
-    CUDA::cudart
-    CUDA::nvml
-    CUDA::cuda_driver
+  psz_cu_compile_settings
+  PHF::phf_cu
+  EVAL::stat_seq
+  EVAL::viewer_cu
+  CUDA::cudart
+  CUDA::nvml
+  CUDA::cuda_driver
 )
 
 if(PSZ_ACTIVATE_LC)
@@ -185,7 +185,8 @@ if(PSZ_ACTIVATE_LC)
     third_party/lc_gen/lc_connector.cu
     third_party/lc_gen/comp-tcms.cu third_party/lc_gen/decomp-tcms.cu
     third_party/lc_gen/comp-bitr.cu third_party/lc_gen/decomp-bitr.cu
-    third_party/lc_gen/comp-rtr.cu  third_party/lc_gen/decomp-rtr.cu
+    third_party/lc_gen/comp-rtr.cu third_party/lc_gen/decomp-rtr.cu
+    third_party/lc_gen/comp-drh.cu third_party/lc_gen/decomp-drh.cu
   )
   target_compile_options(lc_gen PRIVATE
     $<$<COMPILE_LANGUAGE:CUDA>:-O3 -fmad=false>
@@ -201,14 +202,14 @@ add_library(cusz
 )
 target_link_libraries(cusz
   PUBLIC
-    psz_cu_compile_settings
-    psz_cu_core
-    psz_cu_mem
-    psz_cu_utils
-    EVAL::stat_cu
-    PHF::phf_cu
-    FZG::fzg_cu
-    CUDA::cudart
+  psz_cu_compile_settings
+  psz_cu_core
+  psz_cu_mem
+  psz_cu_utils
+  EVAL::stat_cu
+  PHF::phf_cu
+  FZG::fzg_cu
+  CUDA::cudart
 )
 if(PSZ_ACTIVATE_LC)
   target_link_libraries(cusz PUBLIC lc_gen)
@@ -231,13 +232,13 @@ if(PSZ_BUILD_EXAMPLES)
   add_subdirectory(example)
 endif()
 
+if(PSZ_BUILD_PYBINDING)
+  add_subdirectory(py_ext)
+endif()
+
 if(BUILD_TESTING)
   add_subdirectory(test)
 
-  # `ninja check` (or `make check`) runs the full ctest suite in parallel.
-  # GPU tests carry RESOURCE_LOCK gpu (set in test/cmake/cuda-test.cmake) so
-  # they serialize against each other while CPU-only tests (portable_*,
-  # zigzag, lrz_seq, ...) run concurrently up to N workers.
   include(ProcessorCount)
   ProcessorCount(N)
   if(N EQUAL 0)
@@ -255,15 +256,14 @@ endif()
 
 install(TARGETS psz_cu_compile_settings EXPORT CUSZTargets)
 
+# only exist locally when EVAL wasn't resolved via find_package above
+set(_cusz_install_targets psz_seq_core psz_cu_core psz_cu_mem psz_cu_utils cusz)
+if(NOT TARGET EVAL::utils_headers AND NOT EVAL_FOUND)
+  list(APPEND _cusz_install_targets eval_cu eval_seq eval_viewer_cu)
+endif()
+
 install(TARGETS
-  psz_seq_core
-  psz_cu_core
-  psz_cu_mem
-  psz_cu_utils
-  cusz
-  eval_cu
-  eval_seq
-  eval_viewer_cu
+  ${_cusz_install_targets}
   EXPORT CUSZTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -313,12 +313,15 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/CUSZ
 )
 
-install(DIRECTORY
-  portable/include
-  psz/include
-  codec/hf/include
-  codec/fzg/include
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cusz
+install(FILES
+  psz/include/cusz.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cusz/include
+)
+
+install(FILES
+  psz/include/cusz/type.h
+  psz/include/cusz/header.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cusz/include/cusz
 )
 
 install(FILES

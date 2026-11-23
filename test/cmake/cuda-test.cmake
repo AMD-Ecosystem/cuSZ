@@ -49,6 +49,10 @@ add_executable(zigzag src/test_zigzag_codec.cc)
 target_link_libraries(zigzag PRIVATE psz_cu_test_compile_settings)
 add_test(test_zigzag zigzag)
 
+add_executable(module src/test_module.cc)
+target_link_libraries(module PRIVATE psz_cu_test_compile_settings PHF::phf_cu)
+add_test(test_module module)
+
 # Level-1 subroutine
 add_executable(l1_compact src/test_l1_compact.cu)
 target_link_libraries(l1_compact PRIVATE psz_cu_compile_settings
@@ -138,6 +142,38 @@ target_link_libraries(test_hfr
 )
 add_test(test_hf_revisit_altcode test_hfr)
 
+add_executable(test_iterative_reuse src/test_iterative_reuse.cc)
+set_source_files_properties(src/test_iterative_reuse.cc PROPERTIES LANGUAGE ${PSZ_TEST_GPU_LANG})
+target_link_libraries(test_iterative_reuse
+  PRIVATE
+  psz_cu_test_compile_settings
+  cusz
+  ${PSZ_TEST_GPU_RT}
+)
+add_test(test_iterative_reuse test_iterative_reuse)
+set_tests_properties(test_iterative_reuse PROPERTIES RESOURCE_LOCK gpu)
+
+add_executable(test_single_symbol src/test_single_symbol.cc)
+set_source_files_properties(src/test_single_symbol.cc PROPERTIES LANGUAGE ${PSZ_TEST_GPU_LANG})
+target_link_libraries(test_single_symbol
+  PRIVATE
+  psz_cu_test_compile_settings
+  cusz
+  ${PSZ_TEST_GPU_RT}
+)
+add_test(test_single_symbol test_single_symbol)
+set_tests_properties(test_single_symbol PROPERTIES RESOURCE_LOCK gpu)
+
+add_executable(test_hfd26_fused src/test_hfd26_fused.cc)
+target_link_libraries(test_hfd26_fused
+  PRIVATE
+  psz_cu_test_compile_settings
+  PSZ::CUDA::phf
+  PORTABLE::testutils
+  ${PSZ_TEST_GPU_RT}
+)
+add_test(test_hfd26_fused_vs_two_kernel test_hfd26_fused)
+
 add_executable(test_hfserial src/test_hfserial.cc)
 target_link_libraries(test_hfserial
   PRIVATE
@@ -156,6 +192,7 @@ set(psz_gpu_tests
   test_stat_max_error
   test_mem_unique
   test_hf_revisit_altcode
+  test_hfd26_fused_vs_two_kernel
 )
 if(NOT PSZ_TEST_HIP)
   list(APPEND psz_gpu_tests test_histsp_cu)

@@ -22,11 +22,35 @@
 #include <string>
 #include <vector>
 
-#include "arg_builder.hh"   // _ptb::arg_builder
-#include "pred_metrics.hh"  // AssertConfig
+#include "arg_builder.hh"  // _ptb::arg_builder
+#include "cusz/type.h"     // psz_predictor
 #include "toml_lite.hh"
 
 namespace psz_test {
+
+// --assert-* thresholds (-1 = unset).
+struct AssertConfig {
+  double psnr_ge = -1.0;         // psnr floor
+  double max_err_le = -1.0;      // max_err ceiling
+  double max_err_rel_le = -1.0;  // max_err / orig_range ceiling
+};
+
+inline bool resolve_predictor(const std::string& name, psz_predictor& out_pred)
+{
+  if (name == "lrz" or name == "lorenzo") { out_pred = psz_predictor::Lorenzo; }
+  else if (name == "lrz-zz" or name == "lorenzo-zigzag") {
+    out_pred = psz_predictor::LorenzoZigZag;
+  }
+  else if (name == "spl" or name == "spline" or name == "spl-y25" or name == "spline-y25") {
+    out_pred = psz_predictor::SplineY25;
+  }
+  else if (name == "spl-y24" or name == "spline-y24") {
+    out_pred = psz_predictor::SplineY24;
+  }
+  else
+    return false;
+  return true;
+}
 
 struct PredArgs {
   enum class Mode { Abs, Rel };
